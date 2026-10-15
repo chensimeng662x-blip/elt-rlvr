@@ -1,0 +1,32 @@
+[project]
+name = "elt-rlvr"
+version = "0.1.0"
+description = "ELT-Bench as a Tinker RLVR environment: stateful ELT episodes graded by warehouse state"
+requires-python = ">=3.11"
+dependencies = [
+    "duckdb>=1.1",
+    "pandas>=2.0",
+    "numpy>=1.24",
+    "pyyaml>=6.0",
+    "dbt-core>=1.8",
+    "dbt-duckdb>=1.8",
+]
+
+[project.optional-dependencies]
+tinker = ["tinker-cookbook"]
+snowflake = ["snowflake-connector-python", "dbt-snowflake", "requests"]
+dev = ["pytest>=8", "pytest-asyncio>=0.23"]
+
+[project.scripts]
+elt-rlvr = "elt_rlvr.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

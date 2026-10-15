@@ -1,0 +1,25 @@
+models:
+  - name: customer_orders
+    description: One record per customer, including customers who never ordered.
+    columns:
+      - name: customer_id
+        description: the customer id
+      - name: name
+        description: the customer name
+      - name: num_orders
+        description: the number of orders placed by the customer, 0 if none
+      - name: total_spent
+        description: the sum of quantity times unit_price over the customer's orders, treating a NULL quantity as 0, rounded to 2 decimals, 0 if no orders
+      - name: favorite_category
+        description: the product category with the most units bought by the customer, treating a NULL quantity as 0, with ties broken by the ascending order of the category name; NULL if the customer has no orders
+  - name: category_sales
+    description: One record per product category.
+    columns:
+      - name: category
+        description: the product category
+      - name: units_sold
+        description: the total quantity ordered across products in the category, treating a NULL quantity as 0
+      - name: revenue
+        description: the sum of quantity times unit_price across products in the category, treating a NULL quantity as 0, rounded to 2 decimals
+      - name: above_average
+        description: set to 1 if the category's revenue is strictly greater than the average revenue across all categories, otherwise 0

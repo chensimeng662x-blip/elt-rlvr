@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+runs/
+*.duckdb
+*.duckdb.wal
+.pytest_cache/
+.dbt/
+credentials/
+*.credential.json
+terraform.tfstate*
+.terraform/
+.DS_Store

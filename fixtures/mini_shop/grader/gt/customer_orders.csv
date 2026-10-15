@@ -1,0 +1,9 @@
+customer_id,name,num_orders,total_spent,favorite_category
+1,Alice,2,1242.5,stationery
+2,Bob,3,453.5,furniture
+3,Carol,2,76.5,electronics
+4,Dan,2,56.25,stationery
+5,Eve,2,3000.0,furniture
+6,Frank,2,601.75,furniture
+7,Grace,2,29.75,electronics
+8,Heidi,0,0.0,

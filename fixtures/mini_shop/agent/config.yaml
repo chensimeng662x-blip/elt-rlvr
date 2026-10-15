@@ -1,0 +1,21 @@
+duckdb:
+  config:
+    database: "{DESTINATION_DATABASE}"
+    schema: "{DESTINATION_SCHEMA}"
+    dbt_profile: elt
+    dbt_target: dev
+flat_files:
+  - format: csv
+    path: "{SOURCES}/customers.csv"
+    table: customers
+    sync_mode: full_refresh_overwrite
+  - format: jsonl
+    path: "{SOURCES}/orders.jsonl"
+    table: orders
+    sync_mode: full_refresh_overwrite
+sqlite:
+  config:
+    path: "{SOURCES}/products.sqlite"
+    tables:
+      - products
+    sync_mode: full_refresh_overwrite

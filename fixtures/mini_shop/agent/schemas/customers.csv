@@ -1,0 +1,5 @@
+column_name,description
+customer_id,unique id of the customer
+name,customer name
+city,city of residence
+signup_date,date the customer signed up

@@ -1,0 +1,9 @@
+customer_id,name,city,signup_date
+1,Alice,Seattle,2024-01-05
+2,Bob,Portland,2024-01-09
+3,Carol,Seattle,2024-02-11
+4,Dan,Boise,2024-02-20
+5,Eve,Portland,2024-03-02
+6,Frank,Seattle,2024-03-15
+7,Grace,Boise,2024-04-01
+8,Heidi,Portland,2024-04-18

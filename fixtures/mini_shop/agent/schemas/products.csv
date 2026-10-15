@@ -1,0 +1,5 @@
+column_name,description
+product_id,unique id of the product
+product_name,product name
+category,product category
+unit_price,price per unit
