@@ -128,7 +128,8 @@ class DockerSandbox:
     agent_root = "/workspace"
 
     def __init__(self, workdir: str | Path, image: str = "elt-swe", network: str = "elt-docker_elt_network",
-                 container_workdir: str = "/workspace"):
+                 container_workdir: str = "/workspace", env: dict[str, str] | None = None):
+        self.env = dict(env or {})
         self.workdir = Path(workdir).resolve()
         self.workdir.mkdir(parents=True, exist_ok=True)
         self.image = image
@@ -172,7 +173,10 @@ class DockerSandbox:
                           max_output_bytes: int | None = None) -> SandboxResult:
         await self.start()
         limit = max_output_bytes or DEFAULT_MAX_OUTPUT
-        r = await self._docker("exec", "-w", workdir or self.container_workdir, self.container,
+        env_flags: list[str] = []
+        for k, v in self.env.items():
+            env_flags += ["-e", f"{k}={v}"]
+        r = await self._docker("exec", *env_flags, "-w", workdir or self.container_workdir, self.container,
                                "bash", "-lc", command, timeout=timeout)
         return SandboxResult(_cap(r.stdout, limit), _cap(r.stderr, limit), r.exit_code)
 
