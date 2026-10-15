@@ -1,0 +1,8 @@
+{
+  "customer_orders": [
+    "customer_id"
+  ],
+  "category_sales": [
+    "category"
+  ]
+}

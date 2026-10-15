@@ -1,0 +1,6 @@
+column_name,description
+order_id,unique id of the order
+customer_id,id of the ordering customer
+product_id,id of the product ordered
+quantity,units ordered; may be NULL when unknown
+order_date,date of the order
