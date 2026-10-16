@@ -49,3 +49,29 @@ python -m elt_rlvr.train mode=eltbench elt_bench_root=../ELT-Bench destination=s
 - Provenance: every table credited in Stage 1 must have been produced by an Airbyte
   job that `run_el` triggered and observed succeeding, and its content fingerprint
   must still match what that job loaded.
+
+## Deviations from the upstream setup (found while deploying on 2026-10-17, macOS arm64, Airbyte 2.4.0)
+
+1. **Agent image.** Upstream `agents/SWE-agent/docker/elt-swe/Dockerfile` installs
+   `software-properties-common`, which no longer exists on Debian trixie (the current
+   `python:3.11` base). `docker/elt-swe/Dockerfile` here pins `python:3.11-bookworm`
+   with the same tool set.
+2. **LocalStack.** `localstack/localstack:latest` now exits with "pro features require a
+   license". `docker/elt-sources.override.yml` (drop it into `elt-docker/` as
+   `docker-compose.override.yml`) pins the community image `3.8.1` with `SERVICES=s3`,
+   which is all ELT-Bench uses.
+3. **Custom API connector.** The Builder manifest `setup/elt_snowflake.yaml` declares
+   CDK `6.33.4`; Airbyte 2.4.0's `declarative_manifest_image_version` table only knows
+   majors 0 to 4, so both the UI import and the public API return a 409. Registering the
+   version makes the publish succeed:
+
+   ```sql
+   -- inside the abctl cluster: kubectl exec -n airbyte-abctl airbyte-db-0 -- psql -U airbyte -d db-airbyte
+   insert into declarative_manifest_image_version (major_version, image_version, image_sha, created_at, updated_at)
+   values (6, '6.33.4', '<digest of airbyte/source-declarative-manifest:6.33.4>', now(), now());
+   ```
+
+   then `POST /api/public/v1/workspaces/{id}/definitions/declarative_sources` with
+   `{"name": "elt_bench", "manifest": <yaml>}`. The returned `id` is the
+   `api_definition_id` for `setup/airbyte/airbyte_credential.json`. `scripts/airbyte_bootstrap.py`
+   automates the first-run setup, workspace lookup and this publish.
