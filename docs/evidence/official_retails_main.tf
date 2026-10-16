@@ -15,7 +15,7 @@ provider "airbyte" {
 
 resource "airbyte_source_postgres" "postgres" {
   name          = "Postgres Source"
-  workspace_id  = "0567e368-393c-4848-9242-4794f52e7d9a"
+  workspace_id  = "<workspace_id>"
   definition_id = "decd338e-5647-4c0b-adf4-da0e75f5a750"
 
   configuration = {
@@ -39,7 +39,7 @@ resource "airbyte_source_postgres" "postgres" {
 
 resource "airbyte_source_mongodb_v2" "mongodb" {
   name          = "MongoDB Source"
-  workspace_id  = "0567e368-393c-4848-9242-4794f52e7d9a"
+  workspace_id  = "<workspace_id>"
   definition_id = "b2e713cd-cc36-4c0a-b5bd-b47cb8a0561e"
 
   configuration = {
@@ -54,15 +54,15 @@ resource "airbyte_source_mongodb_v2" "mongodb" {
 
 resource "airbyte_source_custom" "custom_api" {
   name          = "Custom API Source"
-  workspace_id  = "0567e368-393c-4848-9242-4794f52e7d9a"
-  definition_id = "017b0395-7eae-4d1a-b7f3-c4f7da400866"
+  workspace_id  = "<workspace_id>"
+  definition_id = "<custom_api_definition_id>"
 
   configuration = jsonencode({})
 }
 
 resource "airbyte_source_s3" "aws_s3" {
   name          = "AWS S3 Source"
-  workspace_id  = "0567e368-393c-4848-9242-4794f52e7d9a"
+  workspace_id  = "<workspace_id>"
   definition_id = "69589781-7828-43c5-9f63-8925b1c1ccc2"
 
   configuration = {
@@ -92,7 +92,7 @@ resource "airbyte_source_s3" "aws_s3" {
 
 resource "airbyte_source_file" "jsonl_file_nation" {
   name          = "JSONL File nation"
-  workspace_id  = "0567e368-393c-4848-9242-4794f52e7d9a"
+  workspace_id  = "<workspace_id>"
   definition_id = "778daa7c-feaf-4db6-96f3-70fd645acc77"
 
   configuration = {
@@ -107,12 +107,12 @@ resource "airbyte_source_file" "jsonl_file_nation" {
 
 resource "airbyte_destination_snowflake" "snowflake" {
   name          = "Snowflake Destination"
-  workspace_id  = "0567e368-393c-4848-9242-4794f52e7d9a"
+  workspace_id  = "<workspace_id>"
   definition_id = "424892c4-daac-4491-b35d-c6688ba547ba"
 
   configuration = {
     database  = "ELT_RETAILS_9F6759FC"
-    host      = "ZTOGGOS-OC84646.snowflakecomputing.com"
+    host      = "<account>.snowflakecomputing.com"
     role      = "AIRBYTE_ROLE"
     schema    = "AIRBYTE_SCHEMA"
     username  = "AIRBYTE_USER"
