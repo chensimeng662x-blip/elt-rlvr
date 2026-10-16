@@ -1,0 +1,8 @@
+# elt-rlvr override: localstack:latest now exits with "pro features require a license";
+# ELT-Bench only needs S3, which the community image provides.
+services:
+  localstack:
+    image: localstack/localstack:3.8.1
+    environment:
+      - SERVICES=s3
+      - DEBUG=0
