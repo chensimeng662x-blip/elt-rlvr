@@ -56,7 +56,7 @@ class DuckDBDestination(Destination):
     name = "duckdb"
 
     def __init__(self, root: str | Path):
-        self.root = Path(root)
+        self.root = Path(root).expanduser().resolve()
         self.root.mkdir(parents=True, exist_ok=True)
 
     def _path(self, task_name: str, rollout_id: str) -> Path:

@@ -117,7 +117,12 @@ def load_eltbench_task(
         )
     table = json.loads((root / "evaluation/table.json").read_text())[task_name]
     sort_keys = json.loads((root / "evaluation/sort_key.json").read_text()).get(task_name, {})
-    gt = Path(gt_dir) if gt_dir else root / "evaluation/agent_results" / f"gt_{destination}" / task_name
+    if gt_dir:
+        gt = Path(gt_dir)
+    else:
+        # gt.zip from elt_setup.sh unpacks to evaluation/gt/<task>; older layouts used agent_results/gt_<dest>/<task>
+        candidates = [root / "evaluation/gt" / task_name, root / "evaluation/agent_results" / f"gt_{destination}" / task_name]
+        gt = next((c for c in candidates if c.is_dir()), candidates[0])
     return TaskSpec(
         name=task_name,
         agent_dir=agent_dir,

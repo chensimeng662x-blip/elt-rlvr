@@ -1,8 +1,11 @@
-# elt-rlvr override: localstack:latest now exits with "pro features require a license";
-# ELT-Bench only needs S3, which the community image provides.
+# elt-rlvr override:
+# - localstack:latest now exits with "pro features require a license"; ELT-Bench only needs S3.
+# - mongo's default WiredTiger cache (~50% of RAM) starved Airbyte's connector pods on a 16 GB Docker VM.
 services:
   localstack:
     image: localstack/localstack:3.8.1
     environment:
       - SERVICES=s3
       - DEBUG=0
+  mongodb:
+    command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27017", "--wiredTigerCacheSizeGB", "1"]

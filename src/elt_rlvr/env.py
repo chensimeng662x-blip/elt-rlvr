@@ -8,6 +8,7 @@ token budgets, and stop reasons are the cookbook's, not ours.
 
 from __future__ import annotations
 
+import copy
 import logging
 from collections.abc import Sequence
 from pathlib import Path
@@ -25,7 +26,7 @@ from tinker_cookbook.tool_use import build_agent_tool_env
 from .destinations.base import Destination
 from .destinations.duckdb_dest import DuckDBDestination
 from .episode import Episode, EpisodeConfig, create_local_episode
-from .prompts import SYSTEM_PROMPT, TASK_INSTRUCTION
+from .prompts import SYSTEM_PROMPT, TASK_INSTRUCTION, TASK_INSTRUCTION_TRANSFORM_ONLY
 from .reward import RewardConfig
 from .task import TaskSpec, load_local_task
 
@@ -35,7 +36,8 @@ logger = logging.getLogger(__name__)
 def initial_messages(episode: Episode, renderer: Renderer) -> list[Message]:
     specs = [t.to_spec() for t in episode.tools.all()]
     prefix = renderer.create_conversation_prefix_with_tools(tools=specs, system_prompt=SYSTEM_PROMPT)
-    return prefix + [{"role": "user", "content": TASK_INSTRUCTION}]
+    instruction = TASK_INSTRUCTION_TRANSFORM_ONLY if episode.stage1_preloaded else TASK_INSTRUCTION
+    return prefix + [{"role": "user", "content": instruction}]
 
 
 def elt_rollout_config(max_turns: int, max_trajectory_tokens: int, max_tool_calls: int) -> RolloutConfig:
@@ -53,7 +55,7 @@ def elt_rollout_config(max_turns: int, max_trajectory_tokens: int, max_tool_call
 class ELTEnvGroupBuilder(EnvGroupBuilder):
     def __init__(self, task: TaskSpec, destination: Destination, rollouts_root: Path, group_size: int,
                  model_name: str, renderer_name: str | None, episode_cfg: EpisodeConfig,
-                 max_turns: int = 40, max_trajectory_tokens: int = 48 * 1024, max_tool_calls: int = 60,
+                 max_turns: int = 40, max_trajectory_tokens: int = 28 * 1024, max_tool_calls: int = 60,
                  max_generation_tokens: int | None = None, context_overflow_reward: float = -0.1):
         self.task = task
         self.destination = destination
@@ -70,13 +72,15 @@ class ELTEnvGroupBuilder(EnvGroupBuilder):
         self._episodes: list[Episode] = []
 
     async def make_envs(self) -> Sequence[Env]:
-        tokenizer = tokenizer_utils.get_tokenizer(self.model_name)
+        base_tokenizer = tokenizer_utils.get_tokenizer(self.model_name)  # cached, shared object
         renderer_name = self.renderer_name or model_info.get_recommended_renderer_name(self.model_name)
-        renderer = get_renderer(renderer_name, tokenizer)
         cfg = elt_rollout_config(self.max_turns, self.max_trajectory_tokens, self.max_tool_calls)
         envs: list[Env] = []
         self._episodes = []
         for _ in range(self.group_size):
+            # One tokenizer per env: rollouts tokenize concurrently in worker threads and a
+            # shared HuggingFace fast tokenizer raises "Already borrowed" under that load.
+            renderer = get_renderer(renderer_name, copy.deepcopy(base_tokenizer))
             ep = await self._create_episode()
             self._episodes.append(ep)
             envs.append(
@@ -144,14 +148,16 @@ class ELTDatasetBuilder(RLDatasetBuilder):
     groups_per_batch: int = 1
     num_batches: int = 1000
     max_turns: int = 40
-    max_trajectory_tokens: int = 48 * 1024
+    max_trajectory_tokens: int = 28 * 1024
     max_tool_calls: int = 60
     max_generation_tokens: int | None = None
     reward_mode: str = "staged"
     el_weight: float = 0.2
     column_credit: float = 0.5
     command_timeout: int = 600
+    max_output_chars: int = 8 * 1024
     require_provenance: bool = True
+    start_stage: str = "full"
 
     def _tasks(self) -> list[TaskSpec]:
         if self.mode == "local":
@@ -176,9 +182,11 @@ class ELTDatasetBuilder(RLDatasetBuilder):
             reward=RewardConfig(mode=self.reward_mode, el_weight=self.el_weight, column_credit=self.column_credit),
             require_provenance=self.require_provenance,
             command_timeout=self.command_timeout,
+            max_output_chars=self.max_output_chars,
+            start_stage=self.start_stage,
         )
         return [
-            ELTEnvGroupBuilder(task, dest, Path(self.rollouts_root), group_size, self.model_name, self.renderer_name, cfg,
+            ELTEnvGroupBuilder(task, dest, Path(self.rollouts_root).expanduser().resolve(), group_size, self.model_name, self.renderer_name, cfg,
                                self.max_turns, self.max_trajectory_tokens, self.max_tool_calls, self.max_generation_tokens)
             for task in self._tasks()
         ]

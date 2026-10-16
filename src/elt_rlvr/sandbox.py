@@ -55,8 +55,12 @@ class LocalSandbox:
         home = self.workdir / ".home"
         home.mkdir(exist_ok=True)
         venv_bin = Path(sys.executable).parent
+        # Prefer GNU userland when available so `sed -i`, `date`, `readlink` behave as in
+        # the Linux agent image (macOS ships BSD variants with different flags).
+        gnubin = [d for d in ("/opt/homebrew/opt/gnu-sed/libexec/gnubin", "/opt/homebrew/opt/coreutils/libexec/gnubin",
+                              "/usr/local/opt/gnu-sed/libexec/gnubin", "/usr/local/opt/coreutils/libexec/gnubin") if Path(d).is_dir()]
         self.env = {
-            "PATH": f"{venv_bin}:/usr/bin:/bin:/usr/local/bin:/opt/homebrew/bin",
+            "PATH": ":".join([str(venv_bin), *gnubin, "/usr/bin", "/bin", "/usr/local/bin", "/opt/homebrew/bin"]),
             "HOME": str(home),
             "LANG": "C.UTF-8",
             "DBT_SEND_ANONYMOUS_USAGE_STATS": "false",

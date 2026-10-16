@@ -28,7 +28,8 @@ from pathlib import Path
 
 from .base import ELReport, ELRuntime, StreamProvenance, fingerprint_table
 
-TERMINAL = {"succeeded", "failed", "cancelled", "incomplete"}
+# "incomplete" means an attempt failed and the job is waiting for its next attempt; it is not terminal.
+TERMINAL = {"succeeded", "failed", "cancelled"}
 
 
 class AirbyteTerraformRuntime(ELRuntime):
@@ -43,8 +44,9 @@ class AirbyteTerraformRuntime(ELRuntime):
         if not cred_path:
             raise RuntimeError("set ELT_RLVR_AIRBYTE_CREDENTIAL to the Airbyte credential JSON path")
         cred = json.loads(Path(cred_path).read_text())
-        token = base64.b64encode(f"{cred['username']}:{cred['password']}".encode()).decode()
-        self._headers = {"Authorization": f"Basic {token}", "Content-Type": "application/json", "Accept": "application/json"}
+        self._cred = cred
+        self._headers = {"Content-Type": "application/json", "Accept": "application/json"}
+        self._refresh_auth()
         self.apply_timeout = apply_timeout
         self.sync_timeout = sync_timeout
         self.poll_seconds = poll_seconds
@@ -52,6 +54,23 @@ class AirbyteTerraformRuntime(ELRuntime):
         self.job_history: list[dict] = []
 
     # -- Airbyte API -----------------------------------------------------------
+    def _refresh_auth(self) -> None:
+        """Airbyte >= 1.6 public API wants a bearer token from client credentials; older
+        deployments accept basic auth. Use whichever the credential file supports."""
+        cred = self._cred
+        if cred.get("client_id") and cred.get("client_secret"):
+            base = self.api_url.split("/api/public")[0]
+            req = urllib.request.Request(f"{base}/api/v1/applications/token", method="POST",
+                                         headers={"Content-Type": "application/json", "Accept": "application/json"},
+                                         data=json.dumps({"client_id": cred["client_id"], "client_secret": cred["client_secret"],
+                                                          "grant-type": "client_credentials"}).encode())
+            with urllib.request.urlopen(req, timeout=60) as r:
+                tok = json.loads(r.read().decode())["access_token"]
+            self._headers["Authorization"] = f"Bearer {tok}"
+        else:
+            token = base64.b64encode(f"{cred['username']}:{cred['password']}".encode()).decode()
+            self._headers["Authorization"] = f"Basic {token}"
+
     def _api(self, method: str, path: str, body: dict | None = None) -> dict:
         req = urllib.request.Request(f"{self.api_url}{path}", method=method, headers=self._headers,
                                      data=json.dumps(body).encode() if body is not None else None)
@@ -105,7 +124,13 @@ class AirbyteTerraformRuntime(ELRuntime):
                 jobs[c["connection_id"]] = {"job_id": None, "status": "failed", "error": f"trigger failed: {e.code} {e.read().decode()[:500]}", "connection": c}
 
         deadline = time.time() + self.sync_timeout
+        last_refresh = time.time()
         while time.time() < deadline:
+            if time.time() - last_refresh > 600:
+                try:
+                    self._refresh_auth(); last_refresh = time.time()
+                except Exception:  # noqa: BLE001
+                    pass
             pending = [cid for cid, j in jobs.items() if j["job_id"] is not None and j["status"] not in TERMINAL]
             if not pending:
                 break

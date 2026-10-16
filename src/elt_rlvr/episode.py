@@ -26,6 +26,11 @@ from .tools import ELTTools
 class EpisodeConfig:
     reward: RewardConfig = RewardConfig()
     require_provenance: bool = True
+    start_stage: str = "full"
+    """``full``: the policy does extraction/loading and transformation.
+    ``transform``: Stage 1 is executed by the environment before the episode starts
+    (through the same EL runtime, so provenance is recorded) and the policy only
+    writes transformations. Used as the first curriculum stage; see DESIGN.md section 6."""
     command_timeout: int = 600
     sql_row_limit: int = 50
     max_output_chars: int = 16 * 1024
@@ -43,6 +48,7 @@ class Episode:
         self.rollout_id = rollout_id
         self.tools = ELTTools(sandbox, handle, el_runtime, cfg.command_timeout, cfg.sql_row_limit, cfg.max_output_chars)
         self.last_report: GradeReport | None = None
+        self.stage1_preloaded = False
 
     def grade(self) -> GradeReport:
         self.last_report = grade(self.task, self.handle, self.el_runtime.provenance,
@@ -106,9 +112,30 @@ async def create_local_episode(task: TaskSpec, destination: Destination, rollout
     """Credential-free episode: LocalSandbox + LocalELRuntime + any Destination (DuckDB by default)."""
     cfg = cfg or EpisodeConfig()
     rollout_id = rollout_id or uuid.uuid4().hex[:8]
-    workdir = Path(rollouts_root) / f"{task.name}-{rollout_id}"
+    workdir = Path(rollouts_root).expanduser().resolve() / f"{task.name}-{rollout_id}"
     handle = await destination.provision(task.name, rollout_id)
     el_runtime = LocalELRuntime(handle, workdir, allowed_roots=[workdir / "sources"])
     prepare_workspace(task, handle, el_runtime, workdir)
     sandbox = LocalSandbox(workdir)
-    return Episode(task, handle, sandbox, el_runtime, workdir, cfg, rollout_id)
+    ep = Episode(task, handle, sandbox, el_runtime, workdir, cfg, rollout_id)
+    if cfg.start_stage == "transform":
+        await preload_stage1_local(ep)
+    return ep
+
+
+async def preload_stage1_local(ep: Episode) -> None:
+    """Transform-only start: write the reference EL configuration and run it through the
+    rollout's own runtime, then remove the file so the workspace looks like Stage 1 was
+    done upstream. Raises if the preload does not succeed (a broken curriculum stage must
+    not silently become a full-stage episode)."""
+    from .policies import _el_config  # reference mapping from config.yaml to el_config.yaml
+
+    config = yaml.safe_load((ep.workdir / "config.yaml").read_text())
+    cfg_path = ep.workdir / ep.el_runtime.config_relpath
+    cfg_path.parent.mkdir(parents=True, exist_ok=True)
+    cfg_path.write_text(_el_config(config))
+    report = await ep.el_runtime.run()
+    cfg_path.unlink()
+    if not report.ok:
+        raise RuntimeError(f"transform-only preload failed: {report.public}")
+    ep.stage1_preloaded = True
