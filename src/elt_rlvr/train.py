@@ -33,7 +33,7 @@ class CLIConfig:
     renderer_name: str | None = None
     lora_rank: int = 32
     load_checkpoint_path: str | None = None
-    max_tokens: int = 4096
+    max_tokens: int = 2048
     temperature: float = 1.0
 
     group_size: int = 4
@@ -45,13 +45,15 @@ class CLIConfig:
     max_steps_off_policy: int | None = None
 
     max_turns: int = 40
-    max_trajectory_tokens: int = 48 * 1024
+    max_trajectory_tokens: int = 28 * 1024  # Qwen3-8B on Tinker has a 32K window; leave room for max_tokens
     max_tool_calls: int = 60
     command_timeout: int = 600
+    max_output_chars: int = 8 * 1024
     reward_mode: str = "staged"
     el_weight: float = 0.2
     column_credit: float = 0.5
     require_provenance: bool = True
+    start_stage: str = "full"  # or "transform" (curriculum stage 1: Stage 1 preloaded)
 
     log_path: str | None = None
     wandb_project: str | None = None
@@ -72,8 +74,8 @@ async def cli_main(c: CLIConfig) -> None:
         model_name=c.model_name, renderer_name=renderer_name, group_size=c.group_size,
         groups_per_batch=c.groups_per_batch, max_turns=c.max_turns, max_trajectory_tokens=c.max_trajectory_tokens,
         max_tool_calls=c.max_tool_calls, max_generation_tokens=c.max_tokens, reward_mode=c.reward_mode,
-        el_weight=c.el_weight, column_credit=c.column_credit, command_timeout=c.command_timeout,
-        require_provenance=c.require_provenance,
+        el_weight=c.el_weight, column_credit=c.column_credit, command_timeout=c.command_timeout, max_output_chars=c.max_output_chars,
+        require_provenance=c.require_provenance, start_stage=c.start_stage,
     )
     config = Config(
         learning_rate=c.learning_rate, dataset_builder=dataset_builder, model_name=c.model_name,

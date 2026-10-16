@@ -75,3 +75,17 @@ python -m elt_rlvr.train mode=eltbench elt_bench_root=../ELT-Bench destination=s
    `{"name": "elt_bench", "manifest": <yaml>}`. The returned `id` is the
    `api_definition_id` for `setup/airbyte/airbyte_credential.json`. `scripts/airbyte_bootstrap.py`
    automates the first-run setup, workspace lookup and this publish.
+4. **Connector drift vs. the upstream ground truth.** `example/retails/main.tf` was written for
+   2025 connector versions. With the connectors Airbyte 2.4 installs:
+   - `source-postgres` 3.8 requires `replication_method` and `tunnel_method` (both already
+     listed as required in ELT-Bench's `documentation/source_postgres.md`) and defaults to
+     `ssl_mode = require`; the benchmark's Postgres container has no SSL, so use
+     `ssl_mode = { disable = {} }`. `scripts/official_oracle.py` applies all three.
+   - `source-mongodb-v2` 2.x renamed `database` to a `databases` list, which contradicts the
+     agent-facing documentation. Pin it back to the last 1.x: `POST /api/v1/source_definitions/update`
+     with `{"sourceDefinitionId": "b2e713cd-cc36-4c0a-b5bd-b47cb8a0561e", "dockerImageTag": "1.5.19", "workspaceId": ...}`.
+5. **Memory.** On a 16 GB Docker VM the MongoDB container's default WiredTiger cache (~50% of
+   RAM) left the Airbyte Postgres source OOM-killed mid-sync ("No exit code file found ...
+   Container may have been killed"). The override caps it at 1 GB.
+6. **Job status semantics.** Airbyte reports `incomplete` for a job whose attempt failed and
+   is waiting for a retry; `run_el` treats only `succeeded` / `failed` / `cancelled` as terminal.

@@ -9,8 +9,10 @@ connector rewrites every logical reference accordingly. Evaluation SQL written a
 Credentials come from one JSON file (never read by the agent, never logged):
 
     ELT_RLVR_SNOWFLAKE_CREDENTIAL=/path/to/snowflake_credential.json
-    {"account": "...", "user": "...", "password": "...", "role": "ACCOUNTADMIN", "warehouse": "AIRBYTE_WAREHOUSE",
+    {"account": "...", "user": "ELT_RLVR_ADMIN", "private_key_path": "credentials/snowflake_rsa_key.pem",
+     "role": "ACCOUNTADMIN", "warehouse": "AIRBYTE_WAREHOUSE",
      "agent_user": "AIRBYTE_USER", "agent_password": "...", "agent_role": "AIRBYTE_ROLE"}
+    (``password`` instead of ``private_key_path`` also works for the admin user.)
 
 The ``agent_*`` values are the ones ELT-Bench's ``setup/destination/setup.sql``
 creates; they are what gets written into the agent-visible ``config.yaml``.
@@ -99,13 +101,19 @@ class SnowflakeDestination(Destination):
         if not path:
             raise RuntimeError("set ELT_RLVR_SNOWFLAKE_CREDENTIAL to the credential JSON path")
         cred = json.loads(Path(path).read_text())
-        admin = {k: cred[k] for k in ("account", "user", "password") if k in cred}
+        admin = {"account": cred["account"], "user": cred["user"]}
+        # Key-pair auth for the provisioning/grading user (a TYPE=SERVICE user is exempt
+        # from Snowflake's MFA requirement for password logins); password as fallback.
+        if cred.get("private_key_path"):
+            admin["private_key_file"] = str(Path(cred["private_key_path"]).expanduser())
+        elif cred.get("password"):
+            admin["password"] = cred["password"]
         for k in ("role", "warehouse"):
             if cred.get(k):
                 admin[k] = cred[k]
         agent = {
             "username": cred.get("agent_user", "AIRBYTE_USER"),
-            "password": cred.get("agent_password", cred["password"]),
+            "password": cred.get("agent_password") or cred.get("password"),
             "role": cred.get("agent_role", "AIRBYTE_ROLE"),
             "warehouse": cred.get("agent_warehouse", cred.get("warehouse", "AIRBYTE_WAREHOUSE")),
         }
@@ -128,8 +136,10 @@ class SnowflakeDestination(Destination):
         self._exec([
             f"CREATE OR REPLACE DATABASE {_ident(db)}",
             f"CREATE SCHEMA {_ident(db)}.{RAW_SCHEMA}",
+            # Airbyte's Snowflake destination creates its own airbyte_internal schema, so the
+            # agent role owns the whole per-rollout database (and nothing outside it).
             f"GRANT OWNERSHIP ON SCHEMA {_ident(db)}.{RAW_SCHEMA} TO ROLE {role} COPY CURRENT GRANTS",
-            f"GRANT USAGE ON DATABASE {_ident(db)} TO ROLE {role}",
+            f"GRANT OWNERSHIP ON DATABASE {_ident(db)} TO ROLE {role} COPY CURRENT GRANTS",
         ])
         agent_cfg = {
             "database": db,

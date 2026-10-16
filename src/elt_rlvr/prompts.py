@@ -31,3 +31,15 @@ TASK_INSTRUCTION = """Build the ELT pipeline for this task.
 
 # Finish
 Call submit when every data model exists as a table in the destination schema and matches its description. Only the warehouse state is graded."""
+
+
+TASK_INSTRUCTION_TRANSFORM_ONLY = """Build the transformation stage of the ELT pipeline for this task. Extraction and loading have already been completed: every source table listed in /workspace/config.yaml is loaded in the destination schema (use sql to inspect them). Do not run run_el.
+
+# Transformation
+1. Create a dbt project in /workspace/elt/dbt (dbt_project.yml plus a models/ folder). The dbt profile named in config.yaml is already configured through DBT_PROFILES_DIR; reference it with `profile:` in dbt_project.yml. Materialize models as tables.
+2. Read /workspace/data_model.yaml. Write one SQL model file per data model, named exactly as the model, selecting from the raw tables in the destination schema. Use /workspace/schemas to understand source columns.
+3. Run `dbt run` from the project directory and fix any error it reports.
+4. Use sql to verify each model against its description in data_model.yaml (row counts, NULL handling, tie-breaking rules).
+
+# Finish
+Call submit when every data model exists as a table in the destination schema and matches its description. Only the warehouse state is graded."""
