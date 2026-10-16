@@ -59,3 +59,13 @@ Residual: with a shared Airbyte role on Snowflake the agent could read (not be c
 ## 7. Known limitation worth stating
 
 On official tasks the base-model success rate is near zero (best published agent: 3.9% of models), so even `staged` groups will often be all-zero. The levers, in order: transform-only snapshots, task selection by table count, larger `group_size`, a stronger base model. The one required optimisation step runs regardless; a useful learning curve needs the curriculum.
+
+## 8. Validation (2026-10-17)
+
+| Check | Result |
+|---|---|
+| 1. Credential-free local test | 26 tests pass (comparator parity with upstream `eva_stage2.py` included); 7 scripted policies x 3 reward modes behave as designed (oracle 1.0, forged load 0, append twice 0, unsubmitted 0) |
+| 2. Official task on Snowflake + Airbyte | `retails`: 8/8 raw tables at expected counts with provenance, 2/2 models match the official comparator, reward 1.0, 568 s. Three earlier attempts failed on connector drift, Postgres SSL default, a non-paginating REST API and connector-pod OOM; every failure surfaced as a row-count or provenance miss in the grade report |
+| 3. Tinker RL step | Qwen3-8B, LoRA 32, group of 4, 40 turns: rewards 0.2 / 0.2 / 0 / 0 (two rollouts completed extraction/loading through `run_el` and submitted). Mixed group, non-zero advantages, `optim_step` executed, checkpoint saved. A first attempt scored 0/0/0/0; its transcripts exposed two environment faults (relative paths in `config.yaml`, BSD `sed` in the local sandbox) that were fixed before the second run |
+
+The all-zero first step is the case section 7 predicts. Reading the transcripts is what separated environment faults from model weakness: the same zero reward covered both.
