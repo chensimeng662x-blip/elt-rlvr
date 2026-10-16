@@ -1,0 +1,60 @@
+[
+ {
+  "traj": 0,
+  "total_reward": 0.2,
+  "steps": 23,
+  "final_metrics": {
+   "tool_stopped": 1.0,
+   "stop/tool_stopped": 1.0,
+   "grade/submitted": 1.0,
+   "grade/el_fraction": 1.0,
+   "grade/el_complete": 1.0,
+   "grade/models_correct": 0.0,
+   "grade/model_fraction": 0.0,
+   "grade/mean_column_fraction": 0.0,
+   "reward/value": 0.2,
+   "tools/bash_calls": 19.0,
+   "tools/sql_calls": 1.0,
+   "tools/el_runs": 1.0,
+   "num_truncations_max_turn_tokens": 1.0
+  }
+ },
+ {
+  "traj": 1,
+  "total_reward": 0.2,
+  "steps": 32,
+  "final_metrics": {
+   "tool_stopped": 1.0,
+   "stop/tool_stopped": 1.0,
+   "grade/submitted": 1.0,
+   "grade/el_fraction": 1.0,
+   "grade/el_complete": 1.0,
+   "grade/models_correct": 0.0,
+   "grade/model_fraction": 0.0,
+   "grade/mean_column_fraction": 0.0,
+   "reward/value": 0.2,
+   "tools/bash_calls": 25.0,
+   "tools/sql_calls": 4.0,
+   "tools/el_runs": 1.0,
+   "num_truncations_max_turn_tokens": 1.0
+  }
+ },
+ {
+  "traj": 2,
+  "total_reward": 0.0,
+  "steps": 40,
+  "final_metrics": {
+   "stop/max_turns": 1.0,
+   "num_truncations_max_turn_tokens": 1.0
+  }
+ },
+ {
+  "traj": 3,
+  "total_reward": 0.0,
+  "steps": 40,
+  "final_metrics": {
+   "stop/max_turns": 1.0,
+   "num_truncations_max_turn_tokens": 2.0
+  }
+ }
+]

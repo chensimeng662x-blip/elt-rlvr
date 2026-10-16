@@ -1,0 +1,140 @@
+{
+ "reward": 1.0,
+ "metrics": {
+  "grade/submitted": 1.0,
+  "grade/el_fraction": 1.0,
+  "grade/el_complete": 1.0,
+  "grade/models_correct": 2.0,
+  "grade/model_fraction": 1.0,
+  "grade/mean_column_fraction": 1.0,
+  "reward/value": 1.0,
+  "tools/bash_calls": 1.0,
+  "tools/sql_calls": 0.0,
+  "tools/el_runs": 1.0
+ },
+ "grade": {
+  "task": "retails",
+  "submitted": true,
+  "schema_found": true,
+  "el_fraction": 1.0,
+  "el_complete": true,
+  "models_correct": 2,
+  "models_total": 2,
+  "mean_column_fraction": 1.0,
+  "raw_tables": [
+   {
+    "table": "customer",
+    "expected_rows": 150000,
+    "found": true,
+    "rows": 150000,
+    "count_ok": true,
+    "provenance_ok": true,
+    "ok": true
+   },
+   {
+    "table": "lineitem",
+    "expected_rows": 4423659,
+    "found": true,
+    "rows": 4423659,
+    "count_ok": true,
+    "provenance_ok": true,
+    "ok": true
+   },
+   {
+    "table": "nation",
+    "expected_rows": 25,
+    "found": true,
+    "rows": 25,
+    "count_ok": true,
+    "provenance_ok": true,
+    "ok": true
+   },
+   {
+    "table": "orders",
+    "expected_rows": 1500000,
+    "found": true,
+    "rows": 1500000,
+    "count_ok": true,
+    "provenance_ok": true,
+    "ok": true
+   },
+   {
+    "table": "part",
+    "expected_rows": 200000,
+    "found": true,
+    "rows": 200000,
+    "count_ok": true,
+    "provenance_ok": true,
+    "ok": true
+   },
+   {
+    "table": "partsupp",
+    "expected_rows": 800000,
+    "found": true,
+    "rows": 800000,
+    "count_ok": true,
+    "provenance_ok": true,
+    "ok": true
+   },
+   {
+    "table": "region",
+    "expected_rows": 5,
+    "found": true,
+    "rows": 5,
+    "count_ok": true,
+    "provenance_ok": true,
+    "ok": true
+   },
+   {
+    "table": "supplier",
+    "expected_rows": 10000,
+    "found": true,
+    "rows": 10000,
+    "count_ok": true,
+    "provenance_ok": true,
+    "ok": true
+   }
+  ],
+  "models": [
+   {
+    "model": "customers",
+    "found": true,
+    "match": true,
+    "matched": [
+     "C_CUSTKEY",
+     "C_NATIONKEY",
+     "C_NAME",
+     "NUM_ORDERS",
+     "AVERAGE_TOTAL_PRICE_PER_ORDER",
+     "HAS_ABOVE_AVERAGE_ACCOUNT_BALANCE",
+     "ORDER_DATE_HIGHEST_TOTAL_PRICE",
+     "BALANCE_LOWER_THAN_4000_AND_IN_US"
+    ],
+    "unmatched": [],
+    "missed": [],
+    "error": null,
+    "column_fraction": 1.0
+   },
+   {
+    "model": "nations",
+    "found": true,
+    "match": true,
+    "matched": [
+     "N_NATIONKEY",
+     "N_NAME",
+     "N_REGIONKEY",
+     "NUM_SUPPLIERS_IN_DEBT",
+     "NUM_CUSTOMERS",
+     "BALANCE_LARGER_THANT_AVG_BALANCE",
+     "TOTAL_PRICE_OF_ALL_ORDERS",
+     "PER_INDEBTED_SUPPLIERS"
+    ],
+    "unmatched": [],
+    "missed": [],
+    "error": null,
+    "column_fraction": 1.0
+   }
+  ]
+ },
+ "elapsed_s": 567.7045910358429
+}
