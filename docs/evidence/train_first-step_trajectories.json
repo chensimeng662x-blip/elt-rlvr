@@ -1,0 +1,38 @@
+[
+ {
+  "traj": 0,
+  "total_reward": 0.0,
+  "steps": 25,
+  "final_metrics": {
+   "stop/max_turns": 1.0,
+   "num_truncations_max_turn_tokens": 1.0
+  }
+ },
+ {
+  "traj": 1,
+  "total_reward": 0.0,
+  "steps": 25,
+  "final_metrics": {
+   "stop/max_turns": 1.0,
+   "num_truncations_max_turn_tokens": 2.0
+  }
+ },
+ {
+  "traj": 2,
+  "total_reward": 0.0,
+  "steps": 25,
+  "final_metrics": {
+   "stop/max_turns": 1.0,
+   "num_truncations_max_turn_tokens": 1.0
+  }
+ },
+ {
+  "traj": 3,
+  "total_reward": 0.0,
+  "steps": 25,
+  "final_metrics": {
+   "stop/max_turns": 1.0,
+   "num_truncations_max_turn_tokens": 2.0
+  }
+ }
+]

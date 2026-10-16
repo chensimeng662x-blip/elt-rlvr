@@ -1,0 +1,40 @@
+[
+ {
+  "traj": 0,
+  "total_reward": 0.0,
+  "steps": 17,
+  "final_metrics": {
+   "parse_error": 1.0,
+   "stop/parse_error": 1.0,
+   "num_truncations_max_turn_tokens": 1.0
+  }
+ },
+ {
+  "traj": 1,
+  "total_reward": 0.0,
+  "steps": 40,
+  "final_metrics": {
+   "stop/max_turns": 1.0,
+   "num_truncations_max_turn_tokens": 1.0
+  }
+ },
+ {
+  "traj": 2,
+  "total_reward": 0.0,
+  "steps": 40,
+  "final_metrics": {
+   "stop/max_turns": 1.0,
+   "num_truncations_max_turn_tokens": 1.0
+  }
+ },
+ {
+  "traj": 3,
+  "total_reward": -0.1,
+  "steps": 36,
+  "final_metrics": {
+   "context_overflow": 1.0,
+   "stop/context_overflow": 1.0,
+   "num_truncations_max_turn_tokens": 3.0
+  }
+ }
+]
