@@ -74,3 +74,7 @@ class ELRuntime(ABC):
     def agent_documentation(self) -> dict[str, str]:
         """Extra documentation files (name -> markdown) to expose to the agent."""
         return {}
+
+    async def cleanup(self) -> None:
+        """Release anything the runtime created outside the warehouse (default: nothing)."""
+        return None

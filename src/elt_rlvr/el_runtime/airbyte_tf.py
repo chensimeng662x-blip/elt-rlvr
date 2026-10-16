@@ -165,3 +165,16 @@ class AirbyteTerraformRuntime(ELRuntime):
                 public_jobs.append(entry)
         self.job_history.append({"jobs": public_jobs})
         return ELReport(ok, {"status": "succeeded" if ok else "partial_failure", "jobs": public_jobs}, dict(self.provenance))
+
+    async def cleanup(self) -> None:
+        """Destroy the Airbyte sources/destination/connections this rollout created so the
+        shared Airbyte workspace does not accumulate one set per rollout."""
+        state = Path(self.workdir) / "elt" / "terraform.tfstate"
+        if not state.exists():
+            return
+        try:
+            await self.sandbox.run_command(
+                "cd /workspace/elt && terraform destroy -auto-approve -input=false -no-color -parallelism=1",
+                timeout=self.apply_timeout)
+        except Exception:  # noqa: BLE001 - best effort
+            pass

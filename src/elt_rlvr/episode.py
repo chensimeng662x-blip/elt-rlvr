@@ -72,6 +72,10 @@ class Episode:
 
     async def cleanup(self) -> None:
         try:
+            await self.el_runtime.cleanup()
+        except Exception:  # noqa: BLE001
+            pass
+        try:
             await self.sandbox.cleanup()
         finally:
             await self.handle.destination.teardown(self.handle)

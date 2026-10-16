@@ -89,3 +89,16 @@ python -m elt_rlvr.train mode=eltbench elt_bench_root=../ELT-Bench destination=s
    Container may have been killed"). The override caps it at 1 GB.
 6. **Job status semantics.** Airbyte reports `incomplete` for a job whose attempt failed and
    is waiting for a retry; `run_el` treats only `succeeded` / `failed` / `cancelled` as terminal.
+7. **REST API pagination.** `elt-docker/rest_api/app.py` ignores query parameters, while the
+   benchmark's own Builder manifest paginates with `OffsetIncrement(page_size=9973)` via
+   `limit`/`offset`. On Airbyte 2.4 the declarative source therefore never terminates (we
+   observed 73.8 M rows written for a 200 k-row table before cancelling). `docker/rest_api_app.py`
+   is the upstream file with `load_csv` honouring `limit`/`offset`; copy it over
+   `elt-docker/rest_api/app.py` and restart `python-rest-api`.
+8. **Append mode and retries.** ELT-Bench configures every stream as `full_refresh_append`.
+   If an Airbyte attempt fails mid-stream and is retried, rows written by the failed attempt
+   stay and the table ends up with more rows than expected (we saw `customer` at 2x after an
+   OOM-killed first attempt). Stage 1 then fails on row count exactly as upstream intends; the
+   fix is operational (enough memory for the connector pods, item 5), not in the grader.
+9. **Cleanup.** Each official rollout now runs `terraform destroy` on its own state during
+   episode cleanup so the shared Airbyte workspace does not accumulate sources and connections.
