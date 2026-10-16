@@ -13,8 +13,8 @@ ELT-Bench's own evaluators and returns the score as the reward.
 | Check | Command | Needs |
 |---|---|---|
 | 1. Credential-free local integration test | `pytest` (or `elt-rlvr demo-local`) | Python only. No accounts, no network, no Docker. |
-| 2. Credentialed rollout on an official task | `python scripts/run_official.py --task address` | Snowflake + Airbyte (abctl) + Docker + ELT-Bench checkout |
-| 3. One Tinker RL optimisation step | `python -m elt_rlvr.train max_steps=1` | `TINKER_API_KEY` |
+| 2. Credentialed rollout on an official task | `python scripts/official_oracle.py --elt-bench-root ../ELT-Bench` | Snowflake + Airbyte (abctl) + Docker + ELT-Bench checkout. Verified on `retails`: reward 1.0 in 568 s |
+| 3. One Tinker RL optimisation step | `python -m elt_rlvr.train max_steps=1` | `TINKER_API_KEY`. Verified: Qwen3-8B, group of 4, rewards 0.2/0.2/0/0 (mixed group), `optim_step` executed |
 
 ### Setup
 
@@ -48,6 +48,8 @@ staged         append_twice         0.000     0.00          0      0.55   # sync
 ```
 
 ### Check 2: official task
+
+Verified on `retails` on 2026-10-17: all 8 raw tables at expected counts with provenance, 2/2 models match, reward 1.0, 568 s. See VALIDATION.md for the four attempts it took and what each one caught.
 
 See [docs/OFFICIAL.md](docs/OFFICIAL.md) for the Airbyte, Snowflake and Docker
 setup. The environment code path is identical to the local one; only three
