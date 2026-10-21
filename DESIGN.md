@@ -17,7 +17,7 @@ Everything a rollout owns is per rollout: a workspace directory, a sandbox (subp
 
 ## 3. Destination-specific, not destination-bound
 
-`Destination` (provision / connector / teardown / snapshot) plus a `BaseConnector` subclass is the whole warehouse surface. `DuckDBDestination` (local, credential-free, 110 lines) and `SnowflakeDestination` (official) implement it. The Snowflake connector maps the logical task name to a per-rollout database so upstream evaluation SQL (`<task>.<table>`) resolves unchanged. Databricks or Redshift follow the upstream connectors in `evaluation/db_connectors.py`.
+`Destination` (provision / connector / teardown / snapshot) plus a `BaseConnector` subclass is the whole warehouse surface. `DuckDBDestination` (local, credential-free, about 110 lines) and `SnowflakeDestination` (official) implement it. The Snowflake connector maps the logical task name to a per-rollout database so upstream evaluation SQL (`<task>.<table>`) resolves unchanged. Databricks or Redshift follow the upstream connectors in `evaluation/db_connectors.py`.
 
 ## 4. Reward
 

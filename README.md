@@ -22,7 +22,7 @@ ELT-Bench's own evaluators and returns the score as the reward.
 uv venv --python 3.12 .venv && source .venv/bin/activate
 uv pip install -e ".[dev]" -e /path/to/tinker-cookbook
 python scripts/build_mini_shop.py      # regenerates the local fixture (already committed)
-pytest                                  # check 1: 25 tests, ~15 s
+pytest                                  # check 1: 26 tests, ~20 s
 elt-rlvr demo-local --verbose           # one full local episode with the scripted oracle -> reward 1.0
 elt-rlvr audit                          # reward matrix: 7 scripted policies x 3 reward modes
 ```
@@ -87,7 +87,9 @@ src/elt_rlvr/
   scripted.py          drive AgentToolMessageEnv with a scripted policy
   eltbench_compat.py   vendored ELT-Bench stage-2 comparator (+ parity test against upstream)
 fixtures/mini_shop/    the credential-free task
-tests/                 25 tests, no credentials
+docs/OFFICIAL.md       official-task setup and the deviations from upstream found while running it
+docs/evidence/         grade report of the official run, training metrics, per-trajectory summaries
+tests/                 26 tests, no credentials
 DESIGN.md              the design decisions
 ```
 
@@ -95,5 +97,5 @@ DESIGN.md              the design decisions
 
 Implement `Destination.provision / connector / teardown` (plus `snapshot` for
 transform-only starts) and a `BaseConnector` subclass with `_norm`, `_fqn`,
-`list_tables`, `verify_schema`. `DuckDBDestination` is 110 lines. Nothing in
+`list_tables`, `verify_schema`. `DuckDBDestination` is about 110 lines. Nothing in
 tools, grading, reward or the Tinker integration changes.
